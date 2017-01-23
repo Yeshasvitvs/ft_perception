@@ -26,25 +26,26 @@
  * 
  */
 
-#include "ft_module.h"
+#include <ft_module.h>
 
-double FTModule::getPeriod()
+double ft_perception::FTModule::getPeriod()
 {
     return 1.0;
 }
 
-bool FTModule::updateModule()
+bool ft_perception::FTModule::updateModule()
 {
     std::cout << "Calling ftModule update" << std::endl;
+    ftEstimate_->getWrench();
 }
 
-bool FTModule::interruptModule()
+bool ft_perception::FTModule::interruptModule()
 {
     std::cout << "Interrupting FTModule for port cleanup" << std::endl;
     return true;
 }
 
-bool FTModule::close()
+bool ft_perception::FTModule::close()
 {
     std::cout << "Calling FTModule close function" << std::endl;
     handlePort.close();

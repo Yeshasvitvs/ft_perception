@@ -35,40 +35,56 @@
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
 
+#include <ft_estimate.h>
+
 using namespace std;
 using namespace yarp::os;
 
-class FTModule:public yarp::os::RFModule
+namespace ft_perception
 {
-
-  yarp::os::Port handlePort;
-  int count;
-
-public:
-    
-    double getPeriod();
-    bool updateModule();
-    
-    bool respond(yarp::os::Bottle& command,yarp::os::Bottle& reply)
+    class FTModule:public yarp::os::RFModule
     {
-        //Simple ROS kinda service reply
-        std::cout << "Received something" << std::endl;
-        if(command.get(0).asString()=="quit") return false;
-        else reply = command;
-        return true;
-    }
-    
-    bool configure()
-    {
-        count=0;
-        //Attaching a port to this module, the received messages can be used in respond method
-        handlePort.open("/ftModule");
-        attach(handlePort);
-        return true;
-    }
-    
-    bool interruptModule();
-    bool close();
-};
+        yarp::os::Port handlePort;
+        int count;
+        std::string robotName;
+        std::string handName;
+        std::string WBDName;
+        
+        ft_perception::FTEstimation *ftEstimate_;
+    public:
+        double getPeriod();
+        bool updateModule();
+        
+        bool respond(yarp::os::Bottle& command,yarp::os::Bottle& reply)
+        {
+            //Simple ROS kinda service reply
+            std::cout << "Received something" << std::endl;
+            if(command.get(0).asString()=="quit") return false;
+            else reply = command;
+            return true;
+            
+        }
+        
+        bool configure(yarp::os::ResourceFinder &rf)
+        {
+            count=0;
+            //Attaching a port to this module, the received messages can be used in respond method
+            handlePort.open("/ftModule");
+            attach(handlePort);
+            robotName = rf.find("robot").asString();         
+            handName = rf.find("hand").asString();
+            WBDName = rf.find("wbdModule").asString();
+            
+            std::cout << "Initializing force estimation object from ft module" << std::endl;
+            ftEstimate_ = new ft_perception::FTEstimation(this->robotName,this->handName,this->WBDName);
+            return true;
+            
+        }
+        
+        bool interruptModule();
+        bool close();
+        
+    };
+}
 
 #endif // FT_MODULE_H
