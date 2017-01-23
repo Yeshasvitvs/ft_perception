@@ -49,8 +49,9 @@ namespace ft_perception
           
           
           yarp::os::BufferedPort<yarp::sig::Vector> *end_effector_wrench_input_port_;
-        
+          
       public:
+          yarp::os::RpcClient ft_estimation_rpc;
           FTEstimation()
           {
               std::cout << "FT estimation default constructor" << std::endl;
@@ -60,6 +61,8 @@ namespace ft_perception
           bool connectToWDB();
           bool getWrench();
           void displayWrench();
+          bool wbdResetOffset();
+          bool wbdCalib();
     };
 }
 

@@ -47,6 +47,11 @@ ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,st
         
     }
     
+    std::string dummyRpcName = "/ft_perception/" + hand + "_arm" + "/" + "rpc";
+    if(ft_estimation_rpc.open(dummyRpcName))
+    {
+        std::cout << "Opened the port" << ft_estimation_rpc.getName() << std::endl;
+    }
     connectToWDB();
 }
 
@@ -67,15 +72,27 @@ bool ft_perception::FTEstimation::connectToWDB()
         {
             std::cout << "Error in connecting port " << wrench_estimate_port_name << \
             " to " << end_effector_wrench_input_port_->getName() << std::endl;
-            return true;
         }
         else
         {
             std::cout << "Successfully connected port " << wrench_estimate_port_name << \
             " to " << end_effector_wrench_input_port_->getName() <<std::endl;
-            return false;
         }
-    } 
+        
+        std::string wbd_rpc_name = "/" + whole_body_dynamics_module_name_ + "/rpc";
+        port_connection = yarp::os::Network::connect(ft_estimation_rpc.getName(),wbd_rpc_name);
+        if(!port_connection)
+        {
+            std::cout << "Error in connecting port " << ft_estimation_rpc.getName() << \
+            " to " << wbd_rpc_name << std::endl;
+        }
+        else
+        {
+            std::cout << "Successfully connected port " << ft_estimation_rpc.getName() << \
+            " to " << wbd_rpc_name << std::endl;
+        }
+        return port_connection;
+    }
 
 }
 
@@ -99,6 +116,30 @@ bool ft_perception::FTEstimation::getWrench()
 void ft_perception::FTEstimation::displayWrench()
 {
     std::cout << "Received wrench from " << hand_name_ << " hand : " << wrench_estimate_->toString() << std::endl;
+}
+
+bool ft_perception::FTEstimation::wbdCalib()
+{
+    yarp::os::Bottle cmd,response;
+    cmd.addString("calib");
+    cmd.addString(" ");
+    cmd.addString("all");
+    ft_estimation_rpc.write(cmd,response);
+    std::cout << "Whole Body Dynamics calibration status : " << response.toString() << std::endl;
+    if(response.toString()=="[ok]") return true;
+    else return false;
+}
+
+bool ft_perception::FTEstimation::wbdResetOffset()
+{
+    yarp::os::Bottle cmd,response;
+    cmd.addString("resetOffset");
+    cmd.addString(" ");
+    cmd.addString("all");
+    ft_estimation_rpc.write(cmd,response);
+    std::cout << "whole Body Dynamics offset reset status : " << response.toString() << std::endl;
+    if(response.toString()=="[ok]") return true;
+    else return false;
 }
 
 
