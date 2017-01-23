@@ -77,6 +77,11 @@ namespace ft_perception
             
             std::cout << "Initializing force estimation object from ft module" << std::endl;
             ftEstimate_ = new ft_perception::FTEstimation(this->robotName,this->handName,this->WBDName);
+            
+            //ftEstimate_->wbdResetOffset();
+            //ftEstimate_->wbdCalib();
+            
+            
             return true;
             
         }
@@ -88,3 +93,4 @@ namespace ft_perception
 }
 
 #endif // FT_MODULE_H
+

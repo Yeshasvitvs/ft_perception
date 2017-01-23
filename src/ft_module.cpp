@@ -35,8 +35,9 @@ double ft_perception::FTModule::getPeriod()
 
 bool ft_perception::FTModule::updateModule()
 {
-    std::cout << "Calling ftModule update" << std::endl;
+    //std::cout << "Calling ftModule update" << std::endl;
     ftEstimate_->getWrench();
+    return true;
 }
 
 bool ft_perception::FTModule::interruptModule()
