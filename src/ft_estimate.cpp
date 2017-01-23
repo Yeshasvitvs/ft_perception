@@ -33,7 +33,6 @@ ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,st
     robot_name_ = robot;
     hand_name_ = hand;
     whole_body_dynamics_module_name_ = wbd;
-    std::cout << "Selected hand is " << hand_name_ << std::endl;
     
     if(!yarp::os::Network::initialized())
     {
@@ -52,13 +51,14 @@ ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,st
     {
         std::cout << "Opened the port" << ft_estimation_rpc.getName() << std::endl;
     }
+    
     connectToWDB();
 }
 
 
 bool ft_perception::FTEstimation::connectToWDB()
 {
-    std::cout << "connecting to whole body dynamics module ports" << std::endl;
+    std::cout << "Tring to connecting to whole body dynamics module ports" << std::endl;
     if(!yarp::os::Network::checkNetwork())
     {
         std::cout << "Yarp network is not detected!" << std::endl;
@@ -91,7 +91,13 @@ bool ft_perception::FTEstimation::connectToWDB()
             std::cout << "Successfully connected port " << ft_estimation_rpc.getName() << \
             " to " << wbd_rpc_name << std::endl;
         }
+        if(!port_connection)
+        {
+            std::cout << "Please check if Whole Body Dynamics module is running" << std::endl;
+        }
+        
         return port_connection;
+
     }
 
 }

@@ -47,7 +47,6 @@ namespace ft_perception
           std::string whole_body_dynamics_module_name_;
           yarp::sig::Vector *wrench_estimate_;
           
-          
           yarp::os::BufferedPort<yarp::sig::Vector> *end_effector_wrench_input_port_;
           
       public:
