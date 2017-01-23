@@ -1,6 +1,8 @@
 #include <iostream>
 #include <ft_module.h>
 
+using namespace ft_perception;
+
 int main(int argc, char **argv) {
     
     yarp::os::Network yarp;
@@ -8,6 +10,7 @@ int main(int argc, char **argv) {
     FTModule ftModule;
     yarp::os::ResourceFinder rf;
     //rf.setVerbose(true);
+    //rf.setDefaultConfigFile("config.ini");
     rf.configure(argc,argv);
     
     ConstString robotName = rf.find("robot").asString();

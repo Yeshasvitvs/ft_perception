@@ -11,7 +11,7 @@ message(STATUS "ICUB_LIBRARIES : " ${ICUB_LIBRARIES})
 
 include_directories(${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} -I include/)
 
-add_executable(ft_perception src/main.cpp src/ft_module.cpp)
+add_executable(ft_perception src/main.cpp src/ft_module.cpp src/ft_estimate.cpp)
 
 target_link_libraries(ft_perception ${YARP_LIBRARIES} ${ICUB_LIBRARIES})
 
