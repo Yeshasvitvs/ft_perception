@@ -121,7 +121,12 @@ bool ft_perception::FTEstimation::getWrench()
     wrench_estimate_ = end_effector_wrench_input_port_->read();
     if(wrench_estimate_->length()!=0)
     {
-        displayWrench();
+        if(log_data_ != true)
+            displayWrench();
+        else 
+        {
+            file_name_ << wrench_estimate_->toString() << std::endl;
+        }
         return true;
     }
     else
