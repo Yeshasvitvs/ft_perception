@@ -31,20 +31,21 @@
 
 ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,std::string wbd)
 {
+    robot_name_ = robot;
+    hand_name_ = hand;
+    whole_body_dynamics_module_name_ = wbd;
+    
     char cwd[1024];
     if(getcwd(cwd,sizeof(cwd)) != NULL)
     {
         data_directory_ = cwd;
         data_directory_.replace(data_directory_.find("build"),5,"data");
+        data_directory_ = data_directory_ + "/" + hand_name_;
         std::cout << "Current data directory : " << data_directory_ << std::endl;
     }
     else std::cerr << "getcwd() error!" << std::endl;
     
     log_data_ = false;
-    
-    robot_name_ = robot;
-    hand_name_ = hand;
-    whole_body_dynamics_module_name_ = wbd;
     
     if(!yarp::os::Network::initialized())
     {

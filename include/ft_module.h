@@ -101,6 +101,10 @@ namespace ft_perception
                        }
                    }
                }
+               else if(cmd == "calib" && cmd1 == "all")
+                   ftEstimate->wbdCalib();
+               else if(cmd == "resetOffset" && cmd1 == "all")
+                   ftEstimate->wbdResetOffset();
            }
             return true;
             
