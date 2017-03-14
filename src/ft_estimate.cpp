@@ -27,9 +27,21 @@
  */
 
 #include <ft_estimate.h>
+#include <unistd.h>
 
 ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,std::string wbd)
 {
+    char cwd[1024];
+    if(getcwd(cwd,sizeof(cwd)) != NULL)
+    {
+        data_directory_ = cwd;
+        data_directory_.replace(data_directory_.find("build"),5,"data");
+        std::cout << "Current data directory : " << data_directory_ << std::endl;
+    }
+    else std::cerr << "getcwd() error!" << std::endl;
+    
+    log_data_ = false;
+    
     robot_name_ = robot;
     hand_name_ = hand;
     whole_body_dynamics_module_name_ = wbd;

@@ -30,6 +30,7 @@
 #define FT_MODULE_H
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 
 #include <yarp/os/Network.h>
@@ -44,23 +45,63 @@ namespace ft_perception
 {
     class FTModule:public yarp::os::RFModule
     {
-        yarp::os::Port handlePort;
+        yarp::os::RpcServer rpc_port;
         int count;
         std::string robotName;
         std::string handName;
         std::string WBDName;
         
-        ft_perception::FTEstimation *ftEstimate_;
+        ft_perception::FTEstimation *ftEstimate;
     public:
         double getPeriod();
         bool updateModule();
         
         bool respond(yarp::os::Bottle& command,yarp::os::Bottle& reply)
         {
-            //Simple ROS kinda service reply
-            std::cout << "Received something" << std::endl;
-            if(command.get(0).asString()=="quit") return false;
-            else reply = command;
+           std::string cmd = command.get(0).asString();
+           std::string cmd1 = command.get(1).asString();
+           
+           std::cout << "received command : " << cmd << " " << cmd1 << std::endl;
+           if (cmd == "quit") return false; 
+           else
+           {
+               //set log data flag
+               if(cmd == "log")
+               {
+                   if(cmd1 == "start")
+                   {
+                       if(ftEstimate->log_data_ == true)
+                       {
+                           reply.addString("Data Logging: [INPROGRESS]");
+                       }
+                       else
+                       {
+                           if(command.size() < 3)
+                               reply.addString("Incorrect arguments! Correct Usage : log start filename");
+                           else
+                           {
+                               std::string cmd2 = command.get(2).asString();
+                               cmd2 = ftEstimate->data_directory_ + "/" + cmd2;
+                               std::cout << "filename : " << cmd2 << std::endl;
+                               ftEstimate->log_data_ = true;
+                               ftEstimate->file_name_.open(cmd2);
+                               std::string dummy = "Data Logging : [START] to " + cmd2;
+                            }
+                       }
+                   }
+                   if(cmd1 == "stop")
+                   {
+                       if(ftEstimate->log_data_ == false)
+                           reply.addString("Data Logging : [NOT IN PROGRESS]");
+                       else
+                       {
+                           ftEstimate->log_data_ = false;
+                           ftEstimate->file_name_.close();
+                           reply.addString("Data Logging : [STOP");
+                       }
+                   }
+               }
+           }
             return true;
             
         }
@@ -68,18 +109,24 @@ namespace ft_perception
         bool configure(yarp::os::ResourceFinder &rf)
         {
             count=0;
-            //Attaching a port to this module, the received messages can be used in respond method
-            handlePort.open("/ftModule");
-            attach(handlePort);
+            if(!yarp::os::Network::initialized())
+            {
+                yarp::os::Network::init();
+            }
+            if(rpc_port.open("/ftModule/rpc:i"))
+            {
+                std::cout << "Opened the port " << rpc_port.getName() << std::endl;
+                attach(rpc_port);
+            }
             robotName = rf.find("robot").asString();         
             handName = rf.find("hand").asString();
             WBDName = rf.find("wbdModule").asString();
             
             std::cout << "Initializing force estimation object from ft module" << std::endl;
-            ftEstimate_ = new ft_perception::FTEstimation(this->robotName,this->handName,this->WBDName);
+            ftEstimate = new ft_perception::FTEstimation(this->robotName,this->handName,this->WBDName);
             
-            //ftEstimate_->wbdResetOffset();
-            //ftEstimate_->wbdCalib();
+            //ftEstimate->wbdResetOffset();
+            //ftEstimate->wbdCalib();
             
             
             return true;

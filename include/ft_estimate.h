@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <fstream>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
@@ -50,6 +51,10 @@ namespace ft_perception
           yarp::os::BufferedPort<yarp::sig::Vector> *end_effector_wrench_input_port_;
           
       public:
+          bool log_data_;
+          std::string data_directory_;
+          std::ofstream file_name_;
+          
           yarp::os::RpcClient ft_estimation_rpc;
           FTEstimation()
           {
