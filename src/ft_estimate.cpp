@@ -154,6 +154,9 @@ bool ft_perception::FTEstimation::getWrench()
     if(hand_name_ == "both")
     {
         std::string dummy = "both";
+        time_stamp_.update();
+        time_ = time_stamp_.getTime();
+        count_ = time_stamp_.getCount();
         if(getLeftWrench() && getRightWrench())
         {
             std::size_t size = left_wrench_estimate_->length();
@@ -178,20 +181,26 @@ bool ft_perception::FTEstimation::getWrench()
                 }
             }
         }
-        outputWrench(total_wrench_estimate_,dummy);
+        outputWrench(total_wrench_estimate_,dummy,time_,count_);
     }
     
     
     else if(hand_name_ == "left")
     {
         std::string dummy = "left";
-        if(getLeftWrench()) outputWrench(*left_wrench_estimate_,dummy);
+        time_stamp_.update();
+        time_ = time_stamp_.getTime();
+        count_ = time_stamp_.getCount();
+        if(getLeftWrench()) outputWrench(*left_wrench_estimate_,dummy,time_,count_);
     }
     
     else if(hand_name_ == "right")
     {
         std::string dummy = "right";
-        if(getRightWrench()) outputWrench(*right_wrench_estimate_,dummy);
+        time_stamp_.update();
+        time_ = time_stamp_.getTime();
+        count_ = time_stamp_.getCount();
+        if(getRightWrench()) outputWrench(*right_wrench_estimate_,dummy,time_,count_);
     }
     
     return true;
@@ -220,12 +229,12 @@ bool ft_perception::FTEstimation::getRightWrench()
 
 }
 
-void ft_perception::FTEstimation::outputWrench(yarp::sig::Vector& wrench_estimate, std::string& hand_name)
+void ft_perception::FTEstimation::outputWrench(yarp::sig::Vector& wrench_estimate, std::string& hand_name, double& time,int& count)
 {
     if(log_data_ != true)
-        std::cout << "Received wrench from " << hand_name << " hand : " << wrench_estimate.toString() << std::endl;
+        std::cout << "Received wrench from " << hand_name << " hand " << "[" << count << " , " << time << "] : " << wrench_estimate.toString() << std::endl;
     else
-        file_name_ << wrench_estimate.toString() << std::endl;
+        file_name_ << count << " " << time << " " << wrench_estimate.toString() << std::endl;
 }
 
 bool ft_perception::FTEstimation::wbdCalib()

@@ -37,12 +37,16 @@
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
 #include <yarp/math/Math.h>
+#include <yarp/os/Stamp.h>
 
 namespace ft_perception
 {
     class FTEstimation
     {
       private:
+          yarp::os::Stamp time_stamp_;
+          double time_;
+          int count_;
           std::string hand_name_;
           std::string robot_name_;
           std::string whole_body_dynamics_module_name_;
@@ -69,7 +73,7 @@ namespace ft_perception
           bool getWrench();
           bool getLeftWrench();
           bool getRightWrench();
-          void outputWrench(yarp::sig::Vector&, std::string&);
+          void outputWrench(yarp::sig::Vector&, std::string&,double&,int&);
           bool wbdResetOffset();
           bool wbdCalib();
     };
