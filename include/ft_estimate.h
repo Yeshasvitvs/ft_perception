@@ -46,9 +46,12 @@ namespace ft_perception
           std::string hand_name_;
           std::string robot_name_;
           std::string whole_body_dynamics_module_name_;
-          yarp::sig::Vector *wrench_estimate_;
+          yarp::sig::Vector *left_wrench_estimate_;
+          yarp::sig::Vector *right_wrench_estimate_;
+          yarp::sig::Vector total_wrench_estimate_;
           
-          yarp::os::BufferedPort<yarp::sig::Vector> *end_effector_wrench_input_port_;
+          yarp::os::BufferedPort<yarp::sig::Vector> *left_end_effector_wrench_input_port_;
+          yarp::os::BufferedPort<yarp::sig::Vector> *right_end_effector_wrench_input_port_;
           
       public:
           bool log_data_;
@@ -61,10 +64,12 @@ namespace ft_perception
               std::cout << "FT estimation default constructor" << std::endl;
           }
           
-          FTEstimation(std::string,std::string,std::string);
+          FTEstimation(std::string&, std::string&, std::string&);
           bool connectToWDB();
           bool getWrench();
-          void displayWrench();
+          bool getLeftWrench();
+          bool getRightWrench();
+          void outputWrench(yarp::sig::Vector&, std::string&);
           bool wbdResetOffset();
           bool wbdCalib();
     };

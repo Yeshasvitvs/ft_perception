@@ -29,7 +29,7 @@
 #include <ft_estimate.h>
 #include <unistd.h>
 
-ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,std::string wbd)
+ft_perception::FTEstimation::FTEstimation(std::string& robot, std::string& hand,std::string& wbd)
 {
     robot_name_ = robot;
     hand_name_ = hand;
@@ -51,18 +51,31 @@ ft_perception::FTEstimation::FTEstimation(std::string robot, std::string hand,st
     {
         yarp::os::Network::init();
     }
-    std::string dummy = "/ft_perception/" + hand + "_arm" + "/" + "cartesianEndEffectorWrench:i" ;
-    end_effector_wrench_input_port_ = new yarp::os::BufferedPort<yarp::sig::Vector>;
-    if(end_effector_wrench_input_port_->open(dummy))
-    {
-        std::cout << "Opened the port" << end_effector_wrench_input_port_->getName() << std::endl;
-        
-    }
     
-    std::string dummyRpcName = "/ft_perception/" + hand + "_arm" + "/" + "rpc";
+    std::string dummyRpcName = "/ft_perception/rpc";
     if(ft_estimation_rpc.open(dummyRpcName))
     {
-        std::cout << "Opened the port" << ft_estimation_rpc.getName() << std::endl;
+        std::cout << "Opened the port " << ft_estimation_rpc.getName() << std::endl;
+    }
+    
+    if(hand_name_ == "left" || hand_name_ == "both")
+    {
+        std::string left_wrench_port_name = "/ft_perception/left_arm/cartesianEndEffectorWrench:i" ;
+        left_end_effector_wrench_input_port_ = new yarp::os::BufferedPort<yarp::sig::Vector>;
+        if(left_end_effector_wrench_input_port_->open(left_wrench_port_name))
+        {
+            std::cout << "Opened the port " << left_end_effector_wrench_input_port_->getName() << std::endl;
+        }
+    }
+    
+    if(hand_name_ == "right" || hand_name_ == "both")
+    {
+        std::string right_wrench_port_name = "/ft_perception/right_arm/cartesianEndEffectorWrench:i" ;
+        right_end_effector_wrench_input_port_ = new yarp::os::BufferedPort<yarp::sig::Vector>;
+        if(right_end_effector_wrench_input_port_->open(right_wrench_port_name))
+        {
+            std::cout << "Opened the port " << right_end_effector_wrench_input_port_->getName() << std::endl;
+        }
     }
     
     connectToWDB();
@@ -78,22 +91,8 @@ bool ft_perception::FTEstimation::connectToWDB()
     }
     else
     {
-        
-        std::string wrench_estimate_port_name = "/" + whole_body_dynamics_module_name_ + "/" + hand_name_+ "_arm" + "/cartesianEndEffectorWrench:o";
-        bool port_connection = yarp::os::Network::connect(wrench_estimate_port_name,end_effector_wrench_input_port_->getName());
-        if(!port_connection)
-        {
-            std::cout << "Error in connecting port " << wrench_estimate_port_name << \
-            " to " << end_effector_wrench_input_port_->getName() << std::endl;
-        }
-        else
-        {
-            std::cout << "Successfully connected port " << wrench_estimate_port_name << \
-            " to " << end_effector_wrench_input_port_->getName() <<std::endl;
-        }
-        
         std::string wbd_rpc_name = "/" + whole_body_dynamics_module_name_ + "/rpc";
-        port_connection = yarp::os::Network::connect(ft_estimation_rpc.getName(),wbd_rpc_name);
+        bool port_connection = yarp::os::Network::connect(ft_estimation_rpc.getName(),wbd_rpc_name);
         if(!port_connection)
         {
             std::cout << "Error in connecting port " << ft_estimation_rpc.getName() << \
@@ -104,6 +103,40 @@ bool ft_perception::FTEstimation::connectToWDB()
             std::cout << "Successfully connected port " << ft_estimation_rpc.getName() << \
             " to " << wbd_rpc_name << std::endl;
         }
+        
+        if(hand_name_ == "left" || hand_name_ == "both")
+        {
+            std::string left_wbd_port_name = "/" + whole_body_dynamics_module_name_ + "/left_arm/cartesianEndEffectorWrench:o";
+            port_connection = yarp::os::Network::connect(left_wbd_port_name,left_end_effector_wrench_input_port_->getName());
+            if(!port_connection)
+            {
+                std::cout << "Error in connecting port " << left_wbd_port_name << \
+                " to " << left_end_effector_wrench_input_port_->getName() << std::endl;     
+            }
+            else
+            {
+                std::cout << "Successfully connected port " << left_wbd_port_name << \
+                " to " << left_end_effector_wrench_input_port_->getName() <<std::endl;
+            }
+        }
+        
+        if(hand_name_ == "right" || hand_name_ == "both")
+        {
+            std::string right_wbd_port_name = "/" + whole_body_dynamics_module_name_ + "/right_arm/cartesianEndEffectorWrench:o";
+            port_connection = yarp::os::Network::connect(right_wbd_port_name,right_end_effector_wrench_input_port_->getName());
+            if(!port_connection)
+            {
+                std::cout << "Error in connecting port " << right_wbd_port_name << \
+                " to " << right_end_effector_wrench_input_port_->getName() << std::endl;     
+            }
+            else
+            {
+                std::cout << "Successfully connected port " << right_wbd_port_name << \
+                " to " << right_end_effector_wrench_input_port_->getName() <<std::endl;
+            }
+        }
+        
+        
         if(!port_connection)
         {
             std::cout << "Please check if Whole Body Dynamics module is running" << std::endl;
@@ -118,28 +151,81 @@ bool ft_perception::FTEstimation::connectToWDB()
 
 bool ft_perception::FTEstimation::getWrench()
 {
-    wrench_estimate_ = end_effector_wrench_input_port_->read();
-    if(wrench_estimate_->length()!=0)
+    if(hand_name_ == "both")
     {
-        if(log_data_ != true)
-            displayWrench();
-        else 
+        std::string dummy = "both";
+        if(getLeftWrench() && getRightWrench())
         {
-            file_name_ << wrench_estimate_->toString() << std::endl;
+            std::size_t size = left_wrench_estimate_->length();
+            total_wrench_estimate_.resize(2*size);
+            total_wrench_estimate_.zero();
+            
+            double* l_ptr = left_wrench_estimate_->data();
+            double* r_ptr = right_wrench_estimate_->data();
+            
+            
+            for(int i = 0 ; i < total_wrench_estimate_.length() ; i++)
+            {
+                if(i<6)
+                {
+                    total_wrench_estimate_[i] = *l_ptr;
+                    l_ptr++;
+                }
+                else 
+                {
+                    total_wrench_estimate_[i] = *r_ptr;
+                    r_ptr++;
+                }
+            }
         }
-        return true;
-    }
-    else
-    {
-        std::cout << "Error while reading wrench estimates from " << hand_name_ << " hand!" << std::endl;
-        return false;
+        outputWrench(total_wrench_estimate_,dummy);
     }
     
+    
+    else if(hand_name_ == "left")
+    {
+        std::string dummy = "left";
+        if(getLeftWrench()) outputWrench(*left_wrench_estimate_,dummy);
+    }
+    
+    else if(hand_name_ == "right")
+    {
+        std::string dummy = "right";
+        if(getRightWrench()) outputWrench(*right_wrench_estimate_,dummy);
+    }
+    
+    return true;
 }
 
-void ft_perception::FTEstimation::displayWrench()
+bool ft_perception::FTEstimation::getLeftWrench()
 {
-    std::cout << "Received wrench from " << hand_name_ << " hand : " << wrench_estimate_->toString() << std::endl;
+    left_wrench_estimate_ = left_end_effector_wrench_input_port_->read();
+    if(left_wrench_estimate_->length()==0)
+    {
+        std::cout << "Error while reading wrench estimates from left hand!" << std::endl;
+        return  false;
+    }
+    return true;
+}
+
+bool ft_perception::FTEstimation::getRightWrench()
+{
+    right_wrench_estimate_ = right_end_effector_wrench_input_port_->read();
+    if(right_wrench_estimate_->length()==0)
+    {
+        std::cout << "Error while reading wrench estimates from right hand!" << std::endl;
+        return false;
+    }
+    return true;
+
+}
+
+void ft_perception::FTEstimation::outputWrench(yarp::sig::Vector& wrench_estimate, std::string& hand_name)
+{
+    if(log_data_ != true)
+        std::cout << "Received wrench from " << hand_name << " hand : " << wrench_estimate.toString() << std::endl;
+    else
+        file_name_ << wrench_estimate.toString() << std::endl;
 }
 
 bool ft_perception::FTEstimation::wbdCalib()
