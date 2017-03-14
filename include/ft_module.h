@@ -56,7 +56,7 @@ namespace ft_perception
         double getPeriod();
         bool updateModule();
         
-        bool respond(yarp::os::Bottle& command,yarp::os::Bottle& reply)
+        bool respond(const yarp::os::Bottle& command,yarp::os::Bottle& reply)
         {
            std::string cmd = command.get(0).asString();
            std::string cmd1 = command.get(1).asString();
@@ -86,6 +86,7 @@ namespace ft_perception
                                ftEstimate->log_data_ = true;
                                ftEstimate->file_name_.open(cmd2);
                                std::string dummy = "Data Logging : [START] to " + cmd2;
+                               reply.addString(dummy);
                             }
                        }
                    }
@@ -97,14 +98,21 @@ namespace ft_perception
                        {
                            ftEstimate->log_data_ = false;
                            ftEstimate->file_name_.close();
-                           reply.addString("Data Logging : [STOP");
+                           reply.addString("Data Logging : [STOP]");
                        }
                    }
                }
                else if(cmd == "calib" && cmd1 == "all")
+               {
                    ftEstimate->wbdCalib();
+                   reply.addString("[OK]");
+               }
                else if(cmd == "resetOffset" && cmd1 == "all")
+               {
                    ftEstimate->wbdResetOffset();
+                   reply.addString("[OK]");
+               }
+               else reply.addString("UNKNOW COMMAND");
            }
             return true;
             
